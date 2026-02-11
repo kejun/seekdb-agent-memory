@@ -20,9 +20,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "seekdb": "^0.9.0",
-    "@seekdb/qwen": "^0.9.0",
-    "dotenv": "^16.4.5"
+    "@seekdb/default-embed": "^1.1.1",
+    "@seekdb/qwen": "^1.1.1",
+    "dotenv": "^16.4.5",
+    "seekdb": "^1.1.1"
   },
   "devDependencies": {
     "eslint": "^8.57.0"

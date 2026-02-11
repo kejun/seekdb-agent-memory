@@ -34,6 +34,30 @@ export function createEmbeddingFunction() {
 }
 
 /**
+ * 获取 Embedding 向量维度
+ * 优先使用环境变量 EMBEDDING_DIMENSION，非法值回退到默认值
+ * @returns {number}
+ */
+export function getEmbeddingDimension() {
+  const DEFAULT_DIMENSION = 4096;
+  const rawDimension = process.env.EMBEDDING_DIMENSION;
+
+  if (!rawDimension) {
+    return DEFAULT_DIMENSION;
+  }
+
+  const dimension = Number.parseInt(rawDimension, 10);
+  if (!Number.isInteger(dimension) || dimension <= 0) {
+    console.warn(
+      `[config] Invalid EMBEDDING_DIMENSION="${rawDimension}", fallback to ${DEFAULT_DIMENSION}.`,
+    );
+    return DEFAULT_DIMENSION;
+  }
+
+  return dimension;
+}
+
+/**
  * 自定义 OpenRouter Embedding 函数
  * 实现 seekdb-js 的 EmbeddingFunction 接口
  */

@@ -1,4 +1,4 @@
-import { createClient, createEmbeddingFunction } from '../config/database.js';
+import { createEmbeddingFunction, getEmbeddingDimension } from '../config/database.js';
 
 /**
  * Agent 记忆管理类
@@ -16,11 +16,12 @@ export class AgentMemory {
    */
   async init() {
     const embeddingFunction = createEmbeddingFunction();
+    const embeddingDimension = getEmbeddingDimension();
 
     this.collection = await this.client.getOrCreateCollection({
       name: this.collectionName,
       configuration: {
-        dimension: 1024,  // Qwen3 Embedding 维度
+        dimension: embeddingDimension,
         distance: 'cosine',  // 余弦相似度
       },
       embeddingFunction,

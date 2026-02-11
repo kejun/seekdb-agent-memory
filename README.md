@@ -36,6 +36,7 @@ npm install
 # 配置环境变量
 cp .env.example .env
 # 编辑 .env 填入你的 OpenRouter API Key
+# 如切换 Embedding 模型，请同步调整 EMBEDDING_DIMENSION
 ```
 
 ### 2. 启动 SeekDB 服务器
