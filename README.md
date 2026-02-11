@@ -1,4 +1,4 @@
-# SeekDB Agent Memory - 基于 Qwen3 Max 的向量记忆系统
+# SeekDB Agent Memory
 
 使用 seekdb-js + OpenRouter (Qwen3 Max + Qwen3 Embedding) 实现的高效 AI Agent 记忆系统。
 
