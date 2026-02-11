@@ -1,15 +1,15 @@
-# SeekDB Agent Memory
+# SeekDB Agent Memory - Vector Memory System with Qwen3 Max
 
-使用 seekdb-js + OpenRouter (Qwen3 Max + Qwen3 Embedding) 实现的高效 AI Agent 记忆系统。
+Efficient AI Agent memory system using seekdb-js + OpenRouter (Qwen3 Max + Qwen3 Embedding).
 
-## 特性
+## Features
 
-- 🧠 **智能记忆召回**：基于向量相似度，只召回相关上下文
-- 💰 **成本优化**：相比全量上下文，节省 85-95% Token 成本
-- ⚡ **高性能**：基于 OceanBase/SeekDB，支持大规模数据
-- 🔧 **灵活策略**：支持固定数量、阈值、混合三种召回策略
+- 🧠 **Smart Memory Recall**: Only recall relevant context based on vector similarity
+- 💰 **Cost Optimization**: Save 85-95% Token costs compared to full context
+- ⚡ **High Performance**: Based on OceanBase/SeekDB, supports large-scale data
+- 🔧 **Flexible Strategies**: Three recall strategies - limit, threshold, hybrid
 
-## 架构
+## Architecture
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
@@ -24,27 +24,27 @@
                     └──────────────┘
 ```
 
-## 快速开始
+## Quick Start
 
-### 1. 环境准备
+### 1. Environment Setup
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 配置环境变量
+# Configure environment variables
 cp .env.example .env
-# 编辑 .env 填入你的 OpenRouter API Key
-# 如切换 Embedding 模型，请同步调整 EMBEDDING_DIMENSION
+# Edit .env to add your OpenRouter API Key
+# If switching Embedding model, update EMBEDDING_DIMENSION accordingly
 ```
 
-### 2. 启动 SeekDB 服务器
+### 2. Start SeekDB Server
 
 ```bash
-# 拉取 SeekDB 镜像
+# Pull SeekDB image
 docker pull oceanbase/seekdb:latest
 
-# 启动 SeekDB 容器
+# Start SeekDB container
 docker run -d \
   --name seekdb \
   -p 2881:2881 \
@@ -52,105 +52,105 @@ docker run -d \
   oceanbase/seekdb:latest
 ```
 
-### 3. 运行示例
+### 3. Run Demo
 
 ```bash
 npm run demo
 ```
 
-## 项目结构
+## Project Structure
 
 ```
 .
 ├── src/
 │   ├── memory/
-│   │   ├── AgentMemory.js      # 核心记忆管理类
-│   │   └── strategies.js       # 召回策略实现
+│   │   ├── AgentMemory.js      # Core memory management class
+│   │   └── strategies.js       # Recall strategy implementations
 │   ├── llm/
-│   │   ├── OpenRouterClient.js # OpenRouter API 客户端
-│   │   └── QwenEmbedding.js    # Qwen3 Embedding 封装
+│   │   ├── OpenRouterClient.js # OpenRouter API client
+│   │   └── QwenEmbedding.js    # Qwen3 Embedding wrapper
 │   ├── config/
-│   │   └── database.js         # SeekDB 连接配置
+│   │   └── database.js         # SeekDB connection configuration
 │   └── demo/
-│       └── chat-demo.js        # 交互式演示
+│       └── chat-demo.js        # Interactive demo
 ├── tests/
-│   └── memory.test.js          # 单元测试
+│   └── memory.test.js          # Unit tests
 ├── .env.example
 ├── package.json
 └── README.md
 ```
 
-## API 使用示例
+## API Usage Examples
 
-### 基础使用
+### Basic Usage
 
 ```javascript
 import { AgentMemory } from './src/memory/AgentMemory.js';
 import { createClient } from './src/config/database.js';
 
-// 初始化
+// Initialize
 const client = await createClient();
 const memory = new AgentMemory(client);
 
-// 存储对话
-await memory.store('user', '你好，我叫张三');
-await memory.store('assistant', '你好张三！很高兴认识你。');
+// Store conversation
+await memory.store('user', 'Hello, my name is Zhang San');
+await memory.store('assistant', 'Hello Zhang San! Nice to meet you.');
 
-// 召回相关记忆
-const relevant = await memory.recall('我叫什么名字？', {
+// Recall relevant memories
+const relevant = await memory.recall('What is my name?', {
   strategy: 'threshold',
   threshold: 0.75
 });
 
 console.log(relevant);
-// [{ role: 'user', message: '你好，我叫张三', similarity: 0.92 }]
+// [{ role: 'user', message: 'Hello, my name is Zhang San', similarity: 0.92 }]
 ```
 
-### 三种召回策略
+### Three Recall Strategies
 
 ```javascript
-// 1. 固定数量召回 - 始终返回 Top N
+// 1. Limit-based - Always return Top N
 const limitResults = await memory.recall(query, {
   strategy: 'limit',
   limit: 5
 });
 
-// 2. 阈值召回 - 只返回相似度超过阈值的消息
+// 2. Threshold-based - Only return messages above similarity threshold
 const thresholdResults = await memory.recall(query, {
   strategy: 'threshold',
   threshold: 0.75,
-  role: 'user' // 可选: 仅召回某类角色消息
+  role: 'user' // Optional: filter by role
 });
 
-// 3. 混合召回 - 先阈值筛选，再限制数量
+// 3. Hybrid - Threshold filter first, then limit quantity
 const hybridResults = await memory.recallHybrid(query, {
   threshold: 0.6,
   limit: 10
 });
 ```
 
-### 完整 Agent 示例
+### Complete Agent Example
 
 ```javascript
 import { ChatAgent } from './src/demo/chat-demo.js';
 
 const agent = new ChatAgent();
 
-// 对话
-await agent.chat('你好，我是程序员，喜欢写代码');
-await agent.chat('我擅长什么？'); // 能回忆起"程序员"、"写代码"
-await agent.chat('北京天气怎么样？'); // 无关历史被自动过滤
+// Chat
+await agent.chat('Hello, I am a programmer who loves coding');
+await agent.chat('What am I good at?'); // Recalls "programmer", "coding"
+await agent.chat('How is the weather in Beijing?'); // Irrelevant history filtered
 ```
 
-## 成本对比
+## Cost Comparison
 
-| 方案 | 月活 1 万会话 | 月活 10 万会话 |
-|------|--------------|---------------|
-| 全量上下文 | ~$1,600 | ~$16,000 |
-| SeekDB 精准召回 | ~$80 | ~$800 |
-| **节省** | **95%** | **95%** |
+| Solution | 10K Sessions/Month | 100K Sessions/Month |
+|----------|-------------------|---------------------|
+| Full Context | ~$1,600 | ~$16,000 |
+| SeekDB Precision Recall | ~$80 | ~$800 |
+| **Savings** | **95%** | **95%** |
 
-## 技术栈
+## Tech Stack
 
 - **Vector DB**: [SeekDB](https://github.com/oceanbase/seekdb-js) / OceanBase
 - **LLM**: [Qwen3 Max](https://openrouter.ai/qwen/qwen3-max) via OpenRouter

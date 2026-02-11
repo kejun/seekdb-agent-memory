@@ -1,8 +1,8 @@
 import { createEmbeddingFunction, getEmbeddingDimension } from '../config/database.js';
 
 /**
- * Agent 记忆管理类
- * 基于 SeekDB 实现向量存储和相似度召回
+ * Agent Memory Management Class
+ * Implements vector storage and similarity-based recall using SeekDB
  */
 export class AgentMemory {
   constructor(client, collectionName = 'chat_memory') {
@@ -12,7 +12,7 @@ export class AgentMemory {
   }
 
   /**
-   * 初始化集合
+   * Initialize collection
    */
   async init() {
     const embeddingFunction = createEmbeddingFunction();
@@ -22,7 +22,7 @@ export class AgentMemory {
       name: this.collectionName,
       configuration: {
         dimension: embeddingDimension,
-        distance: 'cosine',  // 余弦相似度
+        distance: 'cosine',  // Cosine similarity
       },
       embeddingFunction,
     });
@@ -31,9 +31,9 @@ export class AgentMemory {
   }
 
   /**
-   * 存储对话到记忆
+   * Store conversation to memory
    * @param {string} role - 'user' | 'assistant'
-   * @param {string} message - 消息内容
+   * @param {string} message - Message content
    * @returns {Promise<void>}
    */
   async store(role, message) {
@@ -56,10 +56,10 @@ export class AgentMemory {
   }
 
   /**
-   * 召回相关历史记忆
-   * @param {string} query - 当前查询
-   * @param {Object} options - 召回选项
-   * @returns {Promise<Array>} - 相关历史消息
+   * Recall relevant historical memories
+   * @param {string} query - Current query
+   * @param {Object} options - Recall options
+   * @returns {Promise<Array>} - Relevant historical messages
    */
   async recall(query, options = {}) {
     if (!this.collection) {
@@ -88,13 +88,13 @@ export class AgentMemory {
   }
 
   /**
-   * 阈值召回 - 只返回相似度超过阈值的消息
+   * Threshold-based recall - Only return messages above similarity threshold
    * @private
    */
   async _recallByThreshold(query, threshold, options = {}) {
     const { where } = options;
 
-    // 先获取更多结果，然后本地过滤
+    // Get more results first, then filter locally
     const results = await this.collection.query({
       queryTexts: query,
       where,
@@ -108,7 +108,7 @@ export class AgentMemory {
     const metadatas = results.metadatas?.[0] || [];
 
     for (let i = 0; i < ids.length; i++) {
-      // 余弦距离转相似度: similarity = 1 - distance
+      // Cosine distance to similarity: similarity = 1 - distance
       const similarity = 1 - (distances[i] || 0);
 
       if (similarity >= threshold) {
@@ -126,7 +126,7 @@ export class AgentMemory {
   }
 
   /**
-   * 固定数量召回 - 返回最相似的 N 条
+   * Limit-based recall - Return top N most similar messages
    * @private
    */
   async _recallByLimit(query, limit, options = {}) {
@@ -160,31 +160,31 @@ export class AgentMemory {
   }
 
   /**
-   * 混合召回策略 - 先阈值筛选，再限制数量
-   * @param {string} query - 查询文本
-   * @param {Object} options - 选项
+   * Hybrid recall strategy - Threshold filter first, then limit quantity
+   * @param {string} query - Query text
+   * @param {Object} options - Options
    * @returns {Promise<Array>}
    */
   async recallHybrid(query, options = {}) {
     const { threshold = 0.6, limit = 10, where } = options;
 
-    // 先按阈值召回
+    // Threshold recall first
     const thresholdResults = await this._recallByThreshold(query, threshold, { where, limit });
 
-    // 再限制数量
+    // Then limit quantity
     return thresholdResults.slice(0, limit);
   }
 
   /**
-   * 带时间衰减的召回
-   * @param {string} query - 查询文本
-   * @param {Object} options - 选项
+   * Recall with time decay
+   * @param {string} query - Query text
+   * @param {Object} options - Options
    * @returns {Promise<Array>}
    */
   async recallWithTimeDecay(query, options = {}) {
     const { threshold = 0.6, hours = 24 } = options;
 
-    // 获取时间范围过滤的结果
+    // Get results filtered by time range
     const cutoffTime = Date.now() - hours * 60 * 60 * 1000;
 
     const results = await this.collection.query({
@@ -205,10 +205,10 @@ export class AgentMemory {
       const similarity = 1 - (distances[i] || 0);
 
       if (similarity >= threshold) {
-        // 计算时间衰减权重
+        // Calculate time decay weight
         const age = Date.now() - (metadatas[i]?.timestamp || 0);
         const hoursOld = age / (1000 * 60 * 60);
-        const timeWeight = Math.exp(-hoursOld * 0.1);  // 衰减系数 0.1
+        const timeWeight = Math.exp(-hoursOld * 0.1);  // Decay coefficient 0.1
 
         memories.push({
           id: ids[i],
@@ -222,14 +222,14 @@ export class AgentMemory {
       }
     }
 
-    // 按加权分数排序
+    // Sort by weighted score
     memories.sort((a, b) => b.weightedScore - a.weightedScore);
 
     return memories;
   }
 
   /**
-   * 获取统计信息
+   * Get statistics
    * @returns {Promise<Object>}
    */
   async stats() {
@@ -249,7 +249,7 @@ export class AgentMemory {
   }
 
   /**
-   * 清空记忆
+   * Clear all memories
    */
   async clear() {
     if (!this.collection) {
@@ -257,7 +257,7 @@ export class AgentMemory {
     }
 
     await this.client.deleteCollection(this.collectionName);
-    await this.init();  // 重新初始化
+    await this.init();  // Re-initialize
   }
 }
 

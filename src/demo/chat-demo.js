@@ -6,8 +6,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * 聊天 Agent 演示
- * 展示如何使用 SeekDB 记忆系统构建 AI Agent
+ * Chat Agent Demo
+ * Demonstrates how to build an AI Agent using SeekDB memory system
  */
 export class ChatAgent {
   constructor() {
@@ -17,15 +17,15 @@ export class ChatAgent {
   }
 
   /**
-   * 初始化 Agent
+   * Initialize Agent
    */
   async init() {
     console.log('🚀 Initializing Chat Agent...\n');
 
-    // 连接 SeekDB
+    // Connect to SeekDB
     this.client = await createClient();
 
-    // 初始化记忆系统
+    // Initialize memory system
     this.memory = new AgentMemory(this.client, 'chat_memory');
     await this.memory.init();
 
@@ -36,9 +36,9 @@ export class ChatAgent {
   }
 
   /**
-   * 对话
-   * @param {string} userMessage - 用户消息
-   * @returns {Promise<string>} - Agent 回复
+   * Chat
+   * @param {string} userMessage - User message
+   * @returns {Promise<string>} - Agent response
    */
   async chat(userMessage) {
     console.log(`👤 User: ${userMessage}`);
@@ -57,15 +57,15 @@ export class ChatAgent {
           role: 'user',
         };
 
-    // 1. 召回相关历史记忆
+    // 1. Recall relevant historical memories
     const relevantHistory = await this.memory.recall(userMessage, recallOptions);
 
     console.log(`🧠 Recalled ${relevantHistory.length} relevant memories`);
 
-    // 2. 构建系统提示
+    // 2. Build system prompt
     const systemPrompt = this._buildSystemPrompt(relevantHistory);
 
-    // 3. 调用 LLM
+    // 3. Call LLM
     const messages = [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessage },
@@ -73,7 +73,7 @@ export class ChatAgent {
 
     const response = await this.llm.chat(messages);
 
-    // 4. 存储对话
+    // 4. Store conversation
     await this.memory.store('user', userMessage);
     await this.memory.store('assistant', response);
 
@@ -83,50 +83,50 @@ export class ChatAgent {
   }
 
   /**
-   * 构建系统提示
+   * Build system prompt
    * @private
    */
   _buildSystemPrompt(relevantHistory) {
     if (relevantHistory.length === 0) {
-      return '你是一个有用的 AI 助手。请回答用户的问题。';
+      return 'You are a helpful AI assistant. Please answer user questions.';
     }
 
     const context = relevantHistory
       .map(h => `${h.role}: ${h.message}`)
       .join('\n');
 
-    return `你是一个有用的 AI 助手。以下是与当前问题相关的历史对话，请基于这些信息回答用户的问题：
+    return `You are a helpful AI assistant. The following is relevant historical conversation context:
 
 ${context}
 
-请根据以上历史对话回答用户的新问题。如果历史对话与当前问题无关，请忽略它们。`;
+Please answer the user's new question based on the above context. If the context is irrelevant, ignore it.`;
   }
 
   /**
-   * 演示场景
+   * Demo scenarios
    */
   async runDemo() {
     await this.init();
 
-    console.log('=== Demo 1: 个人背景 ===');
-    await this.chat('你好，我是程序员，喜欢写代码');
+    console.log('=== Demo 1: Personal Background ===');
+    await this.chat('Hello, I am a programmer who loves coding');
 
-    console.log('=== Demo 2: 相关问题召回 ===');
-    await this.chat('我擅长什么？');
+    console.log('=== Demo 2: Related Question Recall ===');
+    await this.chat('What am I good at?');
 
-    console.log('=== Demo 3: 无关话题过滤 ===');
-    await this.chat('北京天气怎么样？');
+    console.log('=== Demo 3: Irrelevant Topic Filtering ===');
+    await this.chat('How is the weather in Beijing?');
 
-    // 最终统计
+    // Final statistics
     const stats = await this.memory.stats();
     console.log(`\n📊 Final memory stats: ${stats.totalMessages} messages stored`);
 
-    // 关闭连接
+    // Close connection
     await this.client.close();
   }
 }
 
-// 如果直接运行此文件
+// Run if executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const agent = new ChatAgent();
   agent.runDemo().catch(console.error);

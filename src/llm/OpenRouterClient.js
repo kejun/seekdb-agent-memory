@@ -1,6 +1,6 @@
 /**
- * OpenRouter API 客户端
- * 用于调用 Qwen3 Max 等大模型
+ * OpenRouter API Client
+ * For calling Qwen3 Max and other LLMs
  */
 export class OpenRouterClient {
   constructor(config = {}) {
@@ -12,10 +12,10 @@ export class OpenRouterClient {
   }
 
   /**
-   * 发送聊天请求
-   * @param {Array} messages - OpenAI 格式的消息数组
-   * @param {Object} options - 额外选项
-   * @returns {Promise<string>} - 模型回复
+   * Send chat request
+   * @param {Array} messages - OpenAI format message array
+   * @param {Object} options - Additional options
+   * @returns {Promise<string>} - Model response
    */
   async chat(messages, options = {}) {
     const {
@@ -55,10 +55,10 @@ export class OpenRouterClient {
   }
 
   /**
-   * 带模型降级的聊天请求
-   * 当主模型不可用时自动尝试备用模型
-   * @param {Array} messages - 消息数组
-   * @param {Object} options - 选项
+   * Chat with model fallback
+   * Automatically tries backup models when primary model is unavailable
+   * @param {Array} messages - Message array
+   * @param {Object} options - Options
    * @returns {Promise<string>}
    */
   async chatWithFallback(messages, options = {}) {
@@ -104,8 +104,8 @@ export class OpenRouterClient {
   }
 
   /**
-   * 生成 Embedding (备用方案)
-   * @param {string} text - 输入文本
+   * Generate Embedding (alternative method)
+   * @param {string} text - Input text
    * @returns {Promise<number[]>}
    */
   async embed(text) {

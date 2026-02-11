@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * 创建 SeekDB 客户端
+ * Create SeekDB client
  * @returns {Promise<SeekdbClient>}
  */
 export async function createClient() {
@@ -21,12 +21,11 @@ export async function createClient() {
 }
 
 /**
- * 创建 Embedding 函数 (Qwen3 via OpenRouter)
+ * Create Embedding function (Qwen3 via OpenRouter)
  * @returns {QwenEmbeddingFunction}
  */
 export function createEmbeddingFunction() {
-  // 使用 QwenEmbeddingFunction 但配置为调用 OpenRouter
-  // 注意: 这里需要自定义实现，因为 @seekdb/qwen 默认调用 DashScope
+  // Using custom implementation because @seekdb/qwen defaults to DashScope
   return new OpenRouterEmbeddingFunction({
     apiKey: process.env.OPENROUTER_API_KEY,
     modelName: process.env.EMBEDDING_MODEL || 'qwen/qwen3-embedding-8b',
@@ -34,8 +33,8 @@ export function createEmbeddingFunction() {
 }
 
 /**
- * 获取 Embedding 向量维度
- * 优先使用环境变量 EMBEDDING_DIMENSION，非法值回退到默认值
+ * Get Embedding vector dimension
+ * Priority: environment variable EMBEDDING_DIMENSION, fallback to default
  * @returns {number}
  */
 export function getEmbeddingDimension() {
@@ -58,8 +57,8 @@ export function getEmbeddingDimension() {
 }
 
 /**
- * 自定义 OpenRouter Embedding 函数
- * 实现 seekdb-js 的 EmbeddingFunction 接口
+ * Custom OpenRouter Embedding function
+ * Implements seekdb-js EmbeddingFunction interface
  */
 class OpenRouterEmbeddingFunction {
   constructor(config) {
@@ -80,9 +79,9 @@ class OpenRouterEmbeddingFunction {
   }
 
   /**
-   * 生成嵌入向量
-   * @param {string[]} texts - 文本数组
-   * @returns {Promise<number[][]>} - 嵌入向量数组
+   * Generate embeddings
+   * @param {string[]} texts - Array of texts
+   * @returns {Promise<number[][]>} - Array of embedding vectors
    */
   async generate(texts) {
     const embeddings = [];
