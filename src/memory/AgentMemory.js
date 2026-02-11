@@ -70,15 +70,18 @@ export class AgentMemory {
       strategy = 'threshold',  // 'threshold' | 'limit' | 'hybrid'
       threshold = 0.75,
       limit = 5,
+      role,
     } = options;
+
+    const where = role ? { role } : undefined;
 
     switch (strategy) {
       case 'threshold':
-        return this._recallByThreshold(query, threshold);
+        return this._recallByThreshold(query, threshold, { where, limit });
       case 'limit':
-        return this._recallByLimit(query, limit);
+        return this._recallByLimit(query, limit, { where });
       case 'hybrid':
-        return this.recallHybrid(query, { threshold, limit });
+        return this.recallHybrid(query, { threshold, limit, where });
       default:
         throw new Error(`Unknown strategy: ${strategy}`);
     }
@@ -88,11 +91,14 @@ export class AgentMemory {
    * 阈值召回 - 只返回相似度超过阈值的消息
    * @private
    */
-  async _recallByThreshold(query, threshold) {
+  async _recallByThreshold(query, threshold, options = {}) {
+    const { where } = options;
+
     // 先获取更多结果，然后本地过滤
     const results = await this.collection.query({
       queryTexts: query,
-      nResults: 50,  // 获取较多结果用于过滤
+      where,
+      nResults: 50,
     });
 
     const memories = [];
@@ -123,9 +129,12 @@ export class AgentMemory {
    * 固定数量召回 - 返回最相似的 N 条
    * @private
    */
-  async _recallByLimit(query, limit) {
+  async _recallByLimit(query, limit, options = {}) {
+    const { where } = options;
+
     const results = await this.collection.query({
       queryTexts: query,
+      where,
       nResults: limit,
     });
 
@@ -157,10 +166,10 @@ export class AgentMemory {
    * @returns {Promise<Array>}
    */
   async recallHybrid(query, options = {}) {
-    const { threshold = 0.6, limit = 10 } = options;
+    const { threshold = 0.6, limit = 10, where } = options;
 
     // 先按阈值召回
-    const thresholdResults = await this._recallByThreshold(query, threshold);
+    const thresholdResults = await this._recallByThreshold(query, threshold, { where, limit });
 
     // 再限制数量
     return thresholdResults.slice(0, limit);

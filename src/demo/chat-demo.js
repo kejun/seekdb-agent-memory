@@ -43,11 +43,22 @@ export class ChatAgent {
   async chat(userMessage) {
     console.log(`👤 User: ${userMessage}`);
 
+    const isProfileQuery = /我(擅长|会|职业|工作|做什么|是什么|叫什么)/.test(userMessage);
+    const recallOptions = isProfileQuery
+      ? {
+          strategy: 'limit',
+          limit: 3,
+          role: 'user',
+        }
+      : {
+          strategy: 'threshold',
+          threshold: 0.65,
+          limit: 5,
+          role: 'user',
+        };
+
     // 1. 召回相关历史记忆
-    const relevantHistory = await this.memory.recall(userMessage, {
-      strategy: 'threshold',
-      threshold: 0.7,
-    });
+    const relevantHistory = await this.memory.recall(userMessage, recallOptions);
 
     console.log(`🧠 Recalled ${relevantHistory.length} relevant memories`);
 
@@ -97,42 +108,14 @@ ${context}
   async runDemo() {
     await this.init();
 
-    console.log('=== Demo 1: 基础对话 ===');
-    await this.chat('你好，我叫张三，是一名程序员');
-    await this.chat('我喜欢写什么代码？');  // 应该回忆起"程序员"
+    console.log('=== Demo 1: 个人背景 ===');
+    await this.chat('你好，我是程序员，喜欢写代码');
 
-    console.log('=== Demo 2: 话题切换 ===');
-    await this.chat('北京今天天气怎么样？');  // 无关历史应被过滤
+    console.log('=== Demo 2: 相关问题召回 ===');
+    await this.chat('我擅长什么？');
 
-    console.log('=== Demo 3: 个人信息 ===');
-    await this.chat('我叫什么名字？');  // 应该回忆起"张三"
-
-    console.log('=== Demo 4: 不同召回策略对比 ===');
-    const query = '我的职业是什么？';
-
-    console.log('\n📌 Threshold strategy (threshold=0.75):');
-    const thresholdResults = await this.memory.recall(query, {
-      strategy: 'threshold',
-      threshold: 0.75,
-    });
-    console.log(`Found ${thresholdResults.length} results:`,
-      thresholdResults.map(r => ({ message: r.message.substring(0, 30), similarity: r.similarity })));
-
-    console.log('\n📌 Limit strategy (limit=3):');
-    const limitResults = await this.memory.recall(query, {
-      strategy: 'limit',
-      limit: 3,
-    });
-    console.log(`Found ${limitResults.length} results:`,
-      limitResults.map(r => ({ message: r.message.substring(0, 30), similarity: r.similarity })));
-
-    console.log('\n📌 Hybrid strategy (threshold=0.5, limit=5):');
-    const hybridResults = await this.memory.recallHybrid(query, {
-      threshold: 0.5,
-      limit: 5,
-    });
-    console.log(`Found ${hybridResults.length} results:`,
-      hybridResults.map(r => ({ message: r.message.substring(0, 30), similarity: r.similarity })));
+    console.log('=== Demo 3: 无关话题过滤 ===');
+    await this.chat('北京天气怎么样？');
 
     // 最终统计
     const stats = await this.memory.stats();
