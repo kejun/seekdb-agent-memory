@@ -8,7 +8,6 @@
 - 💰 **成本优化**：相比全量上下文，节省 85-95% Token 成本
 - ⚡ **高性能**：基于 OceanBase/SeekDB，支持大规模数据
 - 🔧 **灵活策略**：支持固定数量、阈值、混合三种召回策略
-- 🌐 **中文优化**：使用 Qwen3 系列模型，中文理解更精准
 
 ## 架构
 
@@ -42,10 +41,14 @@ cp .env.example .env
 ### 2. 启动 SeekDB 服务器
 
 ```bash
-# 使用 Docker 启动 OceanBase/SeekDB
-docker run -d --name seekdb \
+# 拉取 SeekDB 镜像
+docker pull oceanbase/seekdb:latest
+
+# 启动 SeekDB 容器
+docker run -d \
+  --name seekdb \
   -p 2881:2881 \
-  -e MODE=seekdb \
+  -e MODE=slim \
   oceanbase/seekdb:latest
 ```
 
@@ -115,7 +118,8 @@ const limitResults = await memory.recall(query, {
 // 2. 阈值召回 - 只返回相似度超过阈值的消息
 const thresholdResults = await memory.recall(query, {
   strategy: 'threshold',
-  threshold: 0.75
+  threshold: 0.75,
+  role: 'user' // 可选: 仅召回某类角色消息
 });
 
 // 3. 混合召回 - 先阈值筛选，再限制数量
@@ -128,7 +132,7 @@ const hybridResults = await memory.recallHybrid(query, {
 ### 完整 Agent 示例
 
 ```javascript
-import { ChatAgent } from './src/demo/ChatAgent.js';
+import { ChatAgent } from './src/demo/chat-demo.js';
 
 const agent = new ChatAgent();
 
