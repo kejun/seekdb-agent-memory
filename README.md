@@ -1,4 +1,4 @@
-# SeekDB Agent Memory - Vector Memory System with Qwen3 Max
+# SeekDB Agent Memory
 
 Efficient AI Agent memory system using seekdb-js + OpenRouter (Qwen3 Max + Qwen3 Embedding).
 
